@@ -33,6 +33,7 @@ void check_inputs();
 void draw_rays(int fov, int rays);
 void draw_objects();
 bool reached_object(float current_x, float current_y);
+void render_rays();
 
 //****************************PUBLIKA VARIABLER ***************** */
 const int screen_x = 800;
@@ -45,7 +46,12 @@ int y = 100;
 
 float direction = 0;
 
+int fov = 90;
+int amount_of_rays = 800;
+
 std::vector<Objekt> list_of_objects;
+
+std::vector<float> leght_of_rays;
 
 /****************MAIN*************************** */
 int main() 
@@ -75,7 +81,8 @@ int main()
         display_int_text("y",y, 50, 90);
         draw_objects();
         DrawCircle(x,y,player_radius,RED);
-        draw_rays(90,90);
+        render_rays();
+        draw_rays(fov,amount_of_rays);
 
         
 
@@ -124,6 +131,7 @@ void check_inputs(){
     }
 }
 void draw_rays(int fov, int rays){
+    leght_of_rays.clear();
     for (int i = 0; i < rays; i++){
         float end_x = x;
         float end_y = y;
@@ -131,6 +139,8 @@ void draw_rays(int fov, int rays){
             end_x += 1*sin(direction-(PI*fov/2)/180+ i*((PI*fov/rays)/180));
             end_y += 1*cos(direction-(PI*fov/2)/180+ i*((PI*fov/rays)/180));
         }
+        float dist = sqrt((abs(x-end_x))*(abs(x-end_x))+(abs(y-end_y))*(abs(y-end_y)));
+        leght_of_rays.push_back(dist);
         DrawLine(x,y,end_x,end_y,GREEN);
     }
 }
@@ -147,5 +157,22 @@ bool reached_object(float current_x, float current_y){
 void draw_objects(){
     for (Objekt &o : list_of_objects){
         o.draw();
+    }
+}
+
+void render_rays(){
+    int i = 0;
+    int max_dist = (int)sqrt(screen_x*screen_x+screen_y*screen_y);
+    //int line_len = screen_y-f;
+    
+    for (float &f: leght_of_rays){
+        int blueval = 255 - f/max_dist*150;
+        
+        Color c = CLITERAL(Color){0,0,blueval,255};
+        
+        DrawLine(i,0,i,f/2,BLACK);
+        DrawLine(i,f/2,i,screen_y-f/2,c);
+        DrawLine(i,screen_y-f/2,i,screen_y,BLACK);
+        i++;
     }
 }
