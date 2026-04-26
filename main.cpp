@@ -5,8 +5,27 @@
 #include "stdbool.h"
 #include <vector>
 
-// ************* OBJEKT **************************
+//****************** FUNKTIONS DEKLARATIONER ******************
 
+void display_int_text(const char* input_text,int var,int x, int y);
+void check_inputs();
+void draw_rays(int fov, int rays, int x, int y,std::vector<float>& list);
+void draw_objects();
+bool reached_object(float current_x, float current_y);
+void render_rays();
+ 
+
+// ************* OBJEKT **************************
+class Light_source{
+    public:
+        int x,y,strenght;
+        std::vector<int> rays;
+    Light_source(int x, int y, int strenght){
+        this->x = x;
+        this->y = y;
+        this->strenght = strenght;
+    }
+};
 class Objekt{
 public:
     int x1, x2, y1, y2;
@@ -23,17 +42,9 @@ public:
     void draw(){
         DrawRectangle(x1,y1,x2-x1,y2-y1,BLUE);
     }
-
 };
 
-//****************** FUNKTIONS DEKLARATIONER ******************
 
-void display_int_text(const char* input_text,int var,int x, int y);
-void check_inputs();
-void draw_rays(int fov, int rays);
-void draw_objects();
-bool reached_object(float current_x, float current_y);
-void render_rays();
 
 //****************************PUBLIKA VARIABLER ***************** */
 const int screen_x = 800;
@@ -41,8 +52,8 @@ const int screen_y = 800;
 
 int player_radius = 20;
 
-int x = 100;
-int y = 100; 
+int player_x = 100;
+int player_y = 100; 
 
 float direction = 0;
 
@@ -77,12 +88,12 @@ int main()
         ClearBackground(RAYWHITE);
         check_inputs();
         display_int_text("direction",direction, 50, 50);
-        display_int_text("x",x, 50, 70);
-        display_int_text("y",y, 50, 90);
+        display_int_text("x",player_x, 50, 70);
+        display_int_text("y",player_y, 50, 90);
         draw_objects();
-        DrawCircle(x,y,player_radius,RED);
+        DrawCircle(player_x,player_y,player_radius,RED);
         render_rays();
-        draw_rays(fov,amount_of_rays);
+        draw_rays(fov,amount_of_rays,player_x,player_y, leght_of_rays);
 
         
 
@@ -104,12 +115,12 @@ void display_int_text(const char* input_text,int var, int x, int y){
 
 void check_inputs(){
     if (IsKeyDown(KEY_UP)){
-        y += 5*cos(direction);
-        x += 5*sin(direction);
+        player_y += 5*cos(direction);
+        player_x += 5*sin(direction);
     }
     if (IsKeyDown(KEY_DOWN)){
-        y -= 5*cos(direction);
-        x -= 5*sin(direction);
+        player_y -= 5*cos(direction);
+        player_x -= 5*sin(direction);
     }
     if (IsKeyDown(KEY_RIGHT)){
         direction -= PI/50;
@@ -117,32 +128,33 @@ void check_inputs(){
     if (IsKeyDown(KEY_LEFT)){
         direction += PI/50;
     }
-    if (x > screen_x){
-        x = screen_x;
+    if (player_x > screen_x){
+        player_x = screen_x;
     }
-    if (y > screen_y){
-        y = screen_y;
+    if (player_y > screen_y){
+        player_y = screen_y;
     }
-    if (x < 0){
-        x = 0;
+    if (player_x < 0){
+        player_x = 0;
     }
-    if (y < 0){
-        y = 0;
+    if (player_y < 0){
+        player_y = 0;
     }
 }
-void draw_rays(int fov, int rays){
-    leght_of_rays.clear();
+void draw_rays(int fov, int rays, int x, int y,std::vector<float>& list){
+    list.clear();
     for (int i = 0; i < rays; i++){
         float end_x = x;
         float end_y = y;
-        while(!reached_object(end_x,end_y) && end_x > 0 && end_x < screen_x && end_y > 0 && end_y < screen_y){
+        while(!reached_object(end_x,end_y) && end_x > 0 && end_x < x && end_y > 0 && y < y){
             end_x += 1*sin(direction-(PI*fov/2)/180+ i*((PI*fov/rays)/180));
             end_y += 1*cos(direction-(PI*fov/2)/180+ i*((PI*fov/rays)/180));
         }
         float dist = sqrt((abs(x-end_x))*(abs(x-end_x))+(abs(y-end_y))*(abs(y-end_y)));
-        leght_of_rays.push_back(dist);
+        list.push_back(dist);
         DrawLine(x,y,end_x,end_y,GREEN);
     }
+    
 }
 
 bool reached_object(float current_x, float current_y){
@@ -161,7 +173,7 @@ void draw_objects(){
 }
 
 void render_rays(){
-    int i = 0;
+    int i = screen_x;
     int max_dist = (int)sqrt(screen_x*screen_x+screen_y*screen_y);
     //int line_len = screen_y-f;
     
@@ -169,10 +181,13 @@ void render_rays(){
         int blueval = 255 - f/max_dist*150;
         
         Color c = CLITERAL(Color){0,0,blueval,255};
-        
         DrawLine(i,0,i,f/2,BLACK);
         DrawLine(i,f/2,i,screen_y-f/2,c);
         DrawLine(i,screen_y-f/2,i,screen_y,BLACK);
-        i++;
+        i--;
     }
+}
+void setLightSource(Light_source lamp){
+    
+
 }
